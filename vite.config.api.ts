@@ -1,57 +1,73 @@
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import fs from "node:fs";
 import * as glob from "glob";
 import dotenv from "dotenv";
-import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { build } from "vite";
 
 dotenv.config();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-console.log(process.env);
 
 const files = glob
   .sync("src/api/**/*.ts")
   // Filter out private files
   .filter((file) => {
     return file.indexOf("_") !== 0 && file.indexOf("/_") === -1;
-  });
+  })
+  .map((file: string) => ({
+    entry: `./${file}`,
+    distFileName: file.replace("src/api/", "").replace(".ts", ""),
+  }));
 
-export default defineConfig({
-  resolve: {
-    alias: [
-      {
-        find: /^~/,
-        replacement: path.resolve(__dirname, "src"),
+(async () => {
+  for (const file of files) {
+    await build({
+      ssr: {
+        noExternal: fs
+          .readdirSync(path.join(__dirname, "node_modules"), {
+            withFileTypes: true,
+          })
+          .filter(
+            (dirent) => dirent.isDirectory() && !dirent.name.startsWith(".")
+          )
+          .map((dirent) => new RegExp(dirent.name)),
       },
-    ],
-    extensions: [".mjs", ".js", ".ts", ".jsx", ".tsx", ".json"],
-  },
-  build: {
-    ssr: true,
-    minify: false,
-    rollupOptions: {
-      preserveEntrySignatures: "strict",
-      input: files,
-      output: {
-        dir: ".stormkit/api",
-        format: "esm",
-        entryFileNames: "[name].mjs",
-        preserveModules: true,
-        preserveModulesRoot: "src",
-        exports: "named",
+      configFile: false,
+      resolve: {
+        alias: [
+          {
+            find: /^~/,
+            replacement: path.resolve(__dirname, "src"),
+          },
+        ],
+        extensions: [".ts", ".tsx"],
       },
-    },
-  },
-  define: {
-    ...Object.keys(process.env).reduce(
-      (obj: Record<string, string>, key: string) => {
-        key = key.replace(/-/g, "_");
-        obj[`process.env.${key}`] = JSON.stringify(process.env[key]);
-        return obj;
+      define: {
+        ...Object.keys(process.env).reduce(
+          (obj: Record<string, string>, key: string) => {
+            key = key.replace(/-/g, "_").toUpperCase();
+            obj[`process.env.${key}`] = JSON.stringify(process.env[key]);
+            return obj;
+          },
+          {}
+        ),
       },
-      {}
-    ),
-  },
-  plugins: [react()],
-});
+      build: {
+        ssr: true,
+        emptyOutDir: false,
+        copyPublicDir: false,
+        rollupOptions: {
+          input: {
+            [file.distFileName]: file.entry,
+          },
+          output: {
+            dir: ".stormkit/api",
+            format: "cjs",
+            manualChunks: () => "",
+          },
+        },
+        minify: false,
+      },
+    });
+  }
+})();
