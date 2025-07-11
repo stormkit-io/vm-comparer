@@ -1,9 +1,9 @@
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import fs from "node:fs";
 import * as glob from "glob";
 import dotenv from "dotenv";
-import { build } from "vite";
+import react from "@vitejs/plugin-react";
+import { build, defineConfig } from "vite";
 
 dotenv.config();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -13,60 +13,86 @@ const files = glob
   // Filter out private files
   .filter((file) => {
     return file.indexOf("_") !== 0 && file.indexOf("/_") === -1;
-  })
-  .map((file: string) => ({
-    entry: `./${file}`,
-    distFileName: file.replace("src/api/", "").replace(".ts", ""),
-  }));
+  });
+console.log(files);
 
-(async () => {
-  for (const file of files) {
-    await build({
-      ssr: {
-        noExternal: fs
-          .readdirSync(path.join(__dirname, "node_modules"), {
-            withFileTypes: true,
-          })
-          .filter(
-            (dirent) => dirent.isDirectory() && !dirent.name.startsWith(".")
-          )
-          .map((dirent) => new RegExp(dirent.name)),
+export default defineConfig({
+  resolve: {
+    alias: [
+      {
+        find: /^~/,
+        replacement: path.resolve(__dirname, "src"),
       },
-      configFile: false,
-      resolve: {
-        alias: [
-          {
-            find: /^~/,
-            replacement: path.resolve(__dirname, "src"),
-          },
-        ],
-        extensions: [".ts", ".tsx"],
+    ],
+    extensions: [".mjs", ".js", ".ts", ".jsx", ".tsx", ".json"],
+  },
+  build: {
+    ssr: true,
+    minify: false,
+    rollupOptions: {
+      preserveEntrySignatures: "strict",
+      input: files,
+      output: {
+        dir: ".stormkit/api",
+        format: "esm",
+        entryFileNames: "[name].mjs",
+        preserveModules: true,
+        preserveModulesRoot: "src",
+        exports: "named",
       },
-      define: {
-        ...Object.keys(process.env).reduce(
-          (obj: Record<string, string>, key: string) => {
-            obj[`process.env.${key}`] = JSON.stringify(process.env[key]);
-            return obj;
-          },
-          {}
-        ),
+    },
+  },
+  define: {
+    ...Object.keys(process.env).reduce(
+      (obj: Record<string, string>, key: string) => {
+        obj[`process.env.${key}`] = JSON.stringify(process.env[key]);
+        return obj;
       },
-      build: {
-        ssr: true,
-        emptyOutDir: false,
-        copyPublicDir: false,
-        rollupOptions: {
-          input: {
-            [file.distFileName]: file.entry,
-          },
-          output: {
-            dir: ".stormkit/api",
-            format: "cjs",
-            manualChunks: () => "",
-          },
-        },
-        minify: false,
-      },
-    });
-  }
-})();
+      {}
+    ),
+  },
+  plugins: [react()],
+});
+
+// (async () => {
+//   for (const file of files) {
+//     await build({
+//       ssr: true,
+//       configFile: false,
+//       resolve: {
+//         alias: [
+//           {
+//             find: /^~/,
+//             replacement: path.resolve(__dirname, "src"),
+//           },
+//         ],
+//         extensions: [".ts", ".tsx"],
+//       },
+//       define: {
+//         ...Object.keys(process.env).reduce(
+//           (obj: Record<string, string>, key: string) => {
+//             obj[`process.env.${key}`] = JSON.stringify(process.env[key]);
+//             return obj;
+//           },
+//           {}
+//         ),
+//       },
+//       build: {
+//         ssr: true,
+//         emptyOutDir: false,
+//         copyPublicDir: false,
+//         rollupOptions: {
+//           input: {
+//             [file.distFileName]: file.entry,
+//           },
+//           output: {
+//             dir: ".stormkit/api",
+//             format: "commonjs",
+//             manualChunks: () => "",
+//           },
+//         },
+//         minify: false,
+//       },
+//     });
+//   }
+// })();
