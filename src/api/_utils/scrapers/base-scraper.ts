@@ -1,4 +1,4 @@
-import { Browser, Page, chromium } from "playwright";
+import { Browser, Page, chromium } from "playwright-core";
 
 export abstract class BaseScraper {
   protected browser: Browser | null = null;
