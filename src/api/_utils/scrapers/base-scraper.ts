@@ -5,18 +5,25 @@ export abstract class BaseScraper {
 
   protected async initBrowser(): Promise<Browser> {
     if (!this.browser) {
-      this.browser = await chromium.launch({
-        headless: true,
-        args: [
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
-          "--disable-dev-shm-usage",
-          "--disable-accelerated-2d-canvas",
-          "--no-first-run",
-          "--no-zygote",
-          "--disable-gpu",
-        ],
-      });
+      const ws = process.env.PLAYWRIGHT_WS_ENDPOINT;
+
+      if (ws) {
+        // Connect to an existing browser instance via WebSocket
+        this.browser = await chromium.connect(ws);
+      } else {
+        this.browser = await chromium.launch({
+          headless: true,
+          args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-accelerated-2d-canvas",
+            "--no-first-run",
+            "--no-zygote",
+            "--disable-gpu",
+          ],
+        });
+      }
     }
     return this.browser;
   }
