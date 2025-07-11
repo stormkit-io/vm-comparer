@@ -46,6 +46,7 @@ export default defineConfig({
   define: {
     ...Object.keys(process.env).reduce(
       (obj: Record<string, string>, key: string) => {
+        key = key.replace(/-/g, "_");
         obj[`process.env.${key}`] = JSON.stringify(process.env[key]);
         return obj;
       },
