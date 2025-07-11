@@ -7,29 +7,15 @@ export abstract class BaseScraper {
     if (!this.browser) {
       const ws = process.env.PLAYWRIGHT_WS_ENDPOINT;
 
-      if (ws) {
-        console.log(
-          "Connecting to existing browser instance via WebSocket:",
-          ws
-        );
-
-        // Connect to an existing browser instance via WebSocket
-        this.browser = await chromium.connect(ws);
-      } else {
-        this.browser = await chromium.launch({
-          headless: true,
-          args: [
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-accelerated-2d-canvas",
-            "--no-first-run",
-            "--no-zygote",
-            "--disable-gpu",
-          ],
-        });
+      if (!ws) {
+        console.error("Missing PLAYWRIGHT_WS_ENDPOINT environment variable.");
+        process.exit(-1);
       }
+
+      // Connect to an existing browser instance via WebSocket
+      this.browser = await chromium.connect(ws);
     }
+
     return this.browser;
   }
 
