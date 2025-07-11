@@ -1,4 +1,4 @@
-import type { VmSpec, ProviderPricing } from "../types/pricing";
+import type { ProviderPricing } from "../types/pricing";
 import { BaseScraper } from "./base-scraper";
 
 export class DigitalOceanScraper extends BaseScraper {
