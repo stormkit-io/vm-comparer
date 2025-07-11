@@ -14,7 +14,6 @@ const files = glob
   .filter((file) => {
     return file.indexOf("_") !== 0 && file.indexOf("/_") === -1;
   });
-console.log(files);
 
 export default defineConfig({
   resolve: {

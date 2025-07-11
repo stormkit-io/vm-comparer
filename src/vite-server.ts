@@ -125,7 +125,6 @@ async function generateStaticPages() {
     Object.keys(manifest).forEach((fileName) => {
       if (fileName.startsWith("src/assets")) {
         content = content.replaceAll(fileName, manifest[fileName].file);
-        console.log("REPLACING", fileName, "with", manifest[fileName].file);
       }
     });
 
