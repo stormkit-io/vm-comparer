@@ -8,6 +8,11 @@ export abstract class BaseScraper {
       const ws = process.env.PLAYWRIGHT_WS_ENDPOINT;
 
       if (ws) {
+        console.log(
+          "Connecting to existing browser instance via WebSocket:",
+          ws
+        );
+
         // Connect to an existing browser instance via WebSocket
         this.browser = await chromium.connect(ws);
       } else {
