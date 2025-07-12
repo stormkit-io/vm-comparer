@@ -1,6 +1,5 @@
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import fs from "node:fs";
 import * as glob from "glob";
 import dotenv from "dotenv";
 import { build } from "vite";
@@ -22,16 +21,6 @@ const files = glob
 (async () => {
   for (const file of files) {
     await build({
-      ssr: {
-        noExternal: fs
-          .readdirSync(path.join(__dirname, "node_modules"), {
-            withFileTypes: true,
-          })
-          .filter(
-            (dirent) => dirent.isDirectory() && !dirent.name.startsWith(".")
-          )
-          .map((dirent) => new RegExp(dirent.name)),
-      },
       configFile: false,
       resolve: {
         alias: [
@@ -62,7 +51,7 @@ const files = glob
           },
           output: {
             dir: ".stormkit/api",
-            format: "cjs",
+            format: "esm",
             manualChunks: () => "",
           },
         },
