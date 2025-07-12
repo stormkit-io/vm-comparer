@@ -2,7 +2,6 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import * as glob from "glob";
 import dotenv from "dotenv";
-import { viteStaticCopy } from "vite-plugin-static-copy";
 import { build } from "vite";
 
 dotenv.config();
@@ -58,16 +57,6 @@ const files = glob
         },
         minify: false,
       },
-      plugins: [
-        viteStaticCopy({
-          targets: [
-            {
-              src: path.join(__dirname, "src/api/package.json"),
-              dest: path.join(__dirname, ".stormkit", "api"),
-            },
-          ],
-        }),
-      ],
     });
   }
 })();

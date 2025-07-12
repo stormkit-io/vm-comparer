@@ -1,7 +1,0 @@
-{
-  "version": "1.0.0",
-  "name": "vm-comparer-api",
-  "dependencies": {
-    "playwright-core": "1.53.0"
-  }
-}
